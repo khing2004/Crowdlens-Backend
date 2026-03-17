@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CrowdLens.Data; // points to namespace in corwdlensdbcontext
-using CrowdLens.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -43,7 +42,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<CrowdLensDbContext>(options => 
     options.UseSqlite("Data Source=crowdlens.db"));
 
-// Identity with custom user
+// Set up Identity with custom user
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<CrowdLensDbContext>()
     .AddDefaultTokenProviders();
