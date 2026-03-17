@@ -80,6 +80,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// For seeder to trigger
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<CrowdLensDbContext>();
+    DbInitializer.Seed(context);
+}
+
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

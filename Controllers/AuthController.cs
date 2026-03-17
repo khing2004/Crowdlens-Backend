@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using Crowdlens_backend.Models;
 using Crowdlens_backend.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Crowdlens_backend.Controllers
 {
@@ -34,6 +35,7 @@ namespace Crowdlens_backend.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterDto dto) // What really is the use of a DTO
         {
             // Check if email already exists
@@ -68,6 +70,7 @@ namespace Crowdlens_backend.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
