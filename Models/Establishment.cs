@@ -13,8 +13,9 @@ namespace Crowdlens_backend.Models
         public string EstablishmentName { get; set; } = string.Empty;
 
         public int UserCount { get; set; }
+        public int Capacity { get; set; }
         
-        public DateTime updatedOn { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedOn { get; set; } = DateTime.UtcNow;
 
         public int? AreaId { get; set; }
 
@@ -22,6 +23,8 @@ namespace Crowdlens_backend.Models
 
         public double Longitude { get; set; }
 
-        public int Latitude { get; set; }
+        public double Latitude { get; set; }
+
+        public double OccupancyRate => Capacity > 0 ? (double)UserCount / Capacity * 100 : 0;
     }
 }

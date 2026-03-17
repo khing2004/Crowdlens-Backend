@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CrowdLens.Data; // points to namespace in corwdlensdbcontext
-using CrowdLens.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -43,7 +42,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<CrowdLensDbContext>(options => 
     options.UseSqlite("Data Source=crowdlens.db"));
 
-// Identity with custom user
+// Set up Identity with custom user
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<CrowdLensDbContext>()
     .AddDefaultTokenProviders();
@@ -80,6 +79,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// For seeder to trigger
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<CrowdLensDbContext>();
+    DbInitializer.Seed(context);
+}
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

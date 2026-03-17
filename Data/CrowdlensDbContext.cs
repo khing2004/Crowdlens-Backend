@@ -10,4 +10,7 @@ public class CrowdLensDbContext : IdentityDbContext<User>
 {
     public CrowdLensDbContext(DbContextOptions<CrowdLensDbContext> options) 
         : base(options) { }
+
+    public DbSet<Area> Areas { get; set; } // why is there a need to do this? what does this do? I read that DbSet<Area> recognizes the model Area into a schema or table?
+    public DbSet<Establishment> Establishments { get; set; }
 }
