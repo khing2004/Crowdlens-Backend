@@ -53,13 +53,16 @@ public static class DbInitializer
             // Uptown Establishments
             new Establishment { EstablishmentName = "Skyline Gym", Capacity = 100, UserCount = 95, Area = uptown, Latitude = 10.3201, Longitude = 123.8901 },
             new Establishment { EstablishmentName = "Uptown Cafe", Capacity = 40, UserCount = 38, Area = uptown, Latitude = 10.3205, Longitude = 123.8905 },
+            new Establishment { EstablishmentName = "Geenery Co-working", Capacity = 40, UserCount = 37, Area = uptown, Latitude = 10.3203, Longitude = 123.8906 },
 
             // Downtown Establishments
             new Establishment { EstablishmentName = "Main Library", Capacity = 300, UserCount = 50, Area = downtown, Latitude = 10.3001, Longitude = 123.8801 },
             new Establishment { EstablishmentName = "Old Town Bistro", Capacity = 60, UserCount = 12, Area = downtown, Latitude = 10.3005, Longitude = 123.8805 },
 
             // Parkside Establishments
-            new Establishment { EstablishmentName = "Greenery Co-working", Capacity = 50, UserCount = 25, Area = parkSide, Latitude = 10.3101, Longitude = 123.9001 }
+            new Establishment { EstablishmentName = "Greenery Co-working", Capacity = 50, UserCount = 25, Area = parkSide, Latitude = 10.3101, Longitude = 123.9001 },
+            new Establishment { EstablishmentName = "Main Library", Capacity = 150, UserCount = 58, Area = parkSide, Latitude = 10.3105, Longitude = 123.9005}
+
         };
 
         context.Areas.AddRange(uptown, downtown, parkSide);
