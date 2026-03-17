@@ -15,7 +15,7 @@ namespace Crowdlens_backend.Models
         public int UserCount { get; set; }
         public int Capacity { get; set; }
         
-        public DateTime updatedOn { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedOn { get; set; } = DateTime.UtcNow;
 
         public int? AreaId { get; set; }
 

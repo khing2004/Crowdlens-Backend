@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 
 namespace Crowdlens_backend.DTOs
 {
-    public class CrowdDtos
-    {
-        public class EstablishmentCrowdDto
+    public class EstablishmentCrowdDto
     {
         public int Id { get; set; }
         public string EstablishmentName { get; set; } = "";
@@ -50,5 +48,5 @@ namespace Crowdlens_backend.DTOs
         public List<EstablishmentCrowdDto> Establishments { get; set; } = new();
         public List<AlternativeAreaDto> AlternativeAreas { get; set; } = new();
     }
-    }
+    
 }
