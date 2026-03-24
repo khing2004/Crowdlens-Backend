@@ -9,7 +9,7 @@ namespace Crowdlens_backend.Helpers
     {
         VeryLow,
         Low,
-        Moderate,
+        Medium,
         High,
         VeryHigh
 
@@ -17,32 +17,21 @@ namespace Crowdlens_backend.Helpers
 
     public static class CrowdDensityHelper
     {
-        public static DensityLevel GetLevel(double OccupancyRate) => OccupancyRate switch
+        public static string GetLevel(double occupancyRate)
         {
-            < 20  => DensityLevel.VeryLow,
-            < 40  => DensityLevel.Low,
-            < 60  => DensityLevel.Moderate,
-            < 80  => DensityLevel.High,
-            _     => DensityLevel.VeryHigh
-        };
-
-        public static string GetColor(DensityLevel level) => level switch
-        {
-            DensityLevel.VeryLow  => "#4CAF50",  // green
-            DensityLevel.Low      => "#8BC34A",  // light green
-            DensityLevel.Moderate => "#FFC107",  // amber
-            DensityLevel.High     => "#FF5722",  // orange
-            DensityLevel.VeryHigh => "#F44336",  // red
-            _                     => "#9E9E9E"   // grey fallback
-        };
+            if (occupancyRate < 20) return "Very Low";
+            if (occupancyRate < 40) return "Low";
+            if (occupancyRate < 60) return "Medium";
+            if (occupancyRate < 80) return "High";
+            return "Very High";
+        }
 
         public static string GetTimestampLabel(DateTime lastUpdated)
         {
             var diff = DateTime.UtcNow - lastUpdated;
-            return diff.TotalMinutes < 1    ? "updated just now"
-                 : diff.TotalMinutes < 60   ? $"updated {(int)diff.TotalMinutes} minutes ago"
-                 : diff.TotalHours < 24     ? $"updated {(int)diff.TotalHours} hours ago"
-                 : $"updated {(int)diff.TotalDays} days ago";
+            if (diff.TotalMinutes < 1) return "Just now";
+            if (diff.TotalMinutes < 60) return $"Updated {(int)diff.TotalMinutes} mins ago";
+            return $"Updated {(int)diff.TotalHours} hours ago";
         }
 
         public static bool IsFeedStale(DateTime lastUpdated, int thresholdMinutes = 15)

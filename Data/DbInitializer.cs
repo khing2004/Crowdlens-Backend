@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CrowdLens.Data;
 using Crowdlens_backend.Models;
 
@@ -9,65 +8,76 @@ public static class DbInitializer
 {
     public static void Seed(CrowdLensDbContext context)
     {
+        // Ensures the database exists before seeding
         context.Database.EnsureCreated();
 
-        if (context.Areas.Any()) return; // Prevent duplicate seeding
-            // 1. Create Areas
-        var uptown = new Area
+        // Check if we have already seeded locations to prevent duplicates
+        if (context.Locations.Any()) return; 
+
+        // Create Mock Locations based on your Cebu City coordinates
+        var locations = new List<Location>
         {
-            AreaName = "Uptown District",
-            Capacity = 1500,
-            UserCount = 1300, // Very High (86%)
-            Latitude = 10.3200,
-            Longitude = 123.8900,
-            LastUpdated = DateTime.UtcNow
+            new Location
+            {
+                LocationName = "Cebu City Public Library",
+                Type = "Public Library",
+                Capacity = 300,
+                UserCount = 150, // 50% Occupancy (Medium)
+                Latitude = 10.3095,
+                Longitude = 123.8931,
+                LastUpdated = DateTime.UtcNow,
+                // Initialize votes
+                VotesVeryLow = 2,
+                VotesLow = 5,
+                VotesMedium = 15,
+                VotesHigh = 3,
+                VotesVeryHigh = 0
+            },
+            new Location
+            {
+                LocationName = "Vicente Sotto Medical Center",
+                Type = "Hospital",
+                Capacity = 1000,
+                UserCount = 850, // 85% Occupancy (High)
+                Latitude = 10.3117,
+                Longitude = 123.8915,
+                LastUpdated = DateTime.UtcNow,
+                VotesVeryLow = 0,
+                VotesLow = 1,
+                VotesMedium = 4,
+                VotesHigh = 20,
+                VotesVeryHigh = 25
+            },
+            new Location
+            {
+                LocationName = "Fuente Osmeña Circle",
+                Type = "Public Square",
+                Capacity = 500,
+                UserCount = 50, // 10% Occupancy (Low)
+                Latitude = 10.3111,
+                Longitude = 123.8941,
+                LastUpdated = DateTime.UtcNow,
+                VotesVeryLow = 10,
+                VotesLow = 15,
+                VotesMedium = 2,
+                VotesHigh = 0,
+                VotesVeryHigh = 0
+            }
         };
 
-        var downtown = new Area
-        {
-            AreaName = "Downtown Hub",
-            Capacity = 2000,
-            UserCount = 400, // Low (20%)
-            Latitude = 10.3000,
-            Longitude = 123.8800,
-            LastUpdated = DateTime.UtcNow
-        };
-
-        var parkSide = new Area
-        {
-            AreaName = "Parkside Square",
-            Capacity = 800,
-            UserCount = 400, // Moderate (50%)
-            Latitude = 10.3100,
-            Longitude = 123.9000,
-            LastUpdated = DateTime.UtcNow
-        };
-
-        // 2. Link Alternative Areas (For when Uptown is full)
-        uptown.AlternativeAreas.Add(downtown);
-        uptown.AlternativeAreas.Add(parkSide);
-
-        // 3. Add Establishments per Area
-        var establishments = new List<Establishment>
-        {
-            // Uptown Establishments
-            new Establishment { EstablishmentName = "Skyline Gym", Capacity = 100, UserCount = 95, Area = uptown, Latitude = 10.3201, Longitude = 123.8901 },
-            new Establishment { EstablishmentName = "Uptown Cafe", Capacity = 40, UserCount = 38, Area = uptown, Latitude = 10.3205, Longitude = 123.8905 },
-            new Establishment { EstablishmentName = "Geenery Co-working", Capacity = 40, UserCount = 37, Area = uptown, Latitude = 10.3203, Longitude = 123.8906 },
-
-            // Downtown Establishments
-            new Establishment { EstablishmentName = "Main Library", Capacity = 300, UserCount = 50, Area = downtown, Latitude = 10.3001, Longitude = 123.8801 },
-            new Establishment { EstablishmentName = "Old Town Bistro", Capacity = 60, UserCount = 12, Area = downtown, Latitude = 10.3005, Longitude = 123.8805 },
-
-            // Parkside Establishments
-            new Establishment { EstablishmentName = "Greenery Co-working", Capacity = 50, UserCount = 25, Area = parkSide, Latitude = 10.3101, Longitude = 123.9001 },
-            new Establishment { EstablishmentName = "Main Library", Capacity = 150, UserCount = 58, Area = parkSide, Latitude = 10.3105, Longitude = 123.9005}
-
-        };
-
-        context.Areas.AddRange(uptown, downtown, parkSide);
-        context.Establishments.AddRange(establishments);
+        // Add the locations to the context
+        context.Locations.AddRange(locations);
         
+        // Seed some initial Reports (votes) to test "Fresh Votes" logic
+        var initialReports = new List<Report>
+        {
+            new Report { LocationId = 1, SelectedLevel = "Medium", CreatedAt = DateTime.UtcNow.AddMinutes(-5) },
+            new Report { LocationId = 2, SelectedLevel = "High", CreatedAt = DateTime.UtcNow.AddMinutes(-2) }
+        };
+        
+        context.Reports.AddRange(initialReports);
+
+        // Save all changes to crowdlens.db
         context.SaveChanges();
     }
 }
