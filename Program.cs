@@ -10,6 +10,17 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("react", 
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173") // React port
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+}); 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -92,6 +103,7 @@ using (var scope = app.Services.CreateScope())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors("react");
 app.MapControllers();
 
 app.Run();
