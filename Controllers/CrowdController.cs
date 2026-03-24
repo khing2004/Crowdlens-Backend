@@ -30,12 +30,12 @@ namespace Crowdlens_backend.Controllers
         {
             var locations = await _context.Locations.ToListAsync();
             var dtos = locations.Select(l => new CrowdLocationsDto {
-                Id = l.Id,
-                EstablishmentName = l.LocationName,
+                id = l.Id,
+                name = l.LocationName,
                 type = l.Type,
                 pos = new List<double> { l.Latitude, l.Longitude }, //
-                DensityLevel = CrowdDensityHelper.GetLevel(l.OccupancyRate),
-                LastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated)
+                densityLevel = CrowdDensityHelper.GetLevel(l.OccupancyRate),
+                lastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated)
             }).ToList();
 
             return Ok(dtos);
@@ -64,16 +64,16 @@ namespace Crowdlens_backend.Controllers
                 // Note: 'Pos' is set as [Latitude, Longitude] to match your React interface
                 var response = new CrowdLocationsDto
                 {
-                    Id = location.Id,
-                    EstablishmentName = location.LocationName,
+                    id = location.Id,
+                    name = location.LocationName,
                     type = location.Type,
                     pos = new List<double> { location.Latitude, location.Longitude },
-                    UserCount = location.UserCount,
-                    Capacity = location.Capacity,
-                    OccupancyRate = Math.Round(location.OccupancyRate, 1),
-                    DensityLevel = CrowdDensityHelper.GetLevel(location.OccupancyRate).ToString(),
-                    LastUpdated = CrowdDensityHelper.GetTimestampLabel(location.LastUpdated),
-                    
+                    userCount = location.UserCount,
+                    capacity = location.Capacity,
+                    occupancyRate = Math.Round(location.OccupancyRate, 1),
+                    densityLevel = CrowdDensityHelper.GetLevel(location.OccupancyRate).ToString(),
+                    lastUpdated = CrowdDensityHelper.GetTimestampLabel(location.LastUpdated),
+
                     // You could also add a Votes property here if you update your DTO
                 };
 
