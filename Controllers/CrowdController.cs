@@ -23,6 +23,24 @@ namespace Crowdlens_backend.Controllers
             _context = context;
         }
 
+        // get all locations with basic info for map display
+        [HttpGet("locations")]
+        [Authorize]
+        public async Task<IActionResult> GetAllLocations()
+        {
+            var locations = await _context.Locations.ToListAsync();
+            var dtos = locations.Select(l => new CrowdLocationsDto {
+                Id = l.Id,
+                EstablishmentName = l.LocationName,
+                type = l.Type,
+                pos = new List<double> { l.Latitude, l.Longitude }, //
+                DensityLevel = CrowdDensityHelper.GetLevel(l.OccupancyRate),
+                LastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated)
+            }).ToList();
+
+            return Ok(dtos);
+        }
+
         [HttpGet("location/{id}")]
         [Authorize]
         public async Task<IActionResult> GetLocationCrowdLevel(int id)
