@@ -80,7 +80,13 @@ namespace Crowdlens_backend.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
 
-            return Ok(new { token });
+            return Ok(new AuthResponseDto
+            {
+                Token = token,
+                FullName = user.FullName,
+                Email = user.Email ?? "",
+                Role = roles.FirstOrDefault() ?? "User"
+            });
         }
 
         private string GenerateJwtToken(User user, IList<string> roles)

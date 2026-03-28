@@ -29,17 +29,49 @@ namespace Crowdlens_backend.Controllers
         public async Task<IActionResult> GetAllLocations()
         {
             var locations = await _context.Locations.ToListAsync();
-            var dtos = locations.Select(l => new CrowdLocationsDto {
-                id = l.Id,
-                name = l.LocationName,
-                type = l.Type,
-                pos = new List<double> { l.Latitude, l.Longitude }, //
-                densityLevel = CrowdDensityHelper.GetLevel(l.OccupancyRate),
-                lastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated)
-            }).ToList();
+            var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+
+            var dtos = new List<CrowdLocationsDto>();
+
+            foreach (var l in locations)
+            {
+                // 1. Get fresh votes for THIS location
+                var freshVotes = await _context.Reports
+                    .Where(r => r.LocationId == l.Id && r.CreatedAt >= oneHourAgo)
+                    .ToListAsync();
+
+                string finalDensity;
+
+                if (freshVotes.Any())
+                {
+                    // 2. Logic: Find the level with the MOST votes (The Mode)
+                    finalDensity = freshVotes
+                        .GroupBy(v => v.SelectedLevel)
+                        .OrderByDescending(g => g.Count())
+                        .First()
+                        .Key ?? "Very Low";
+                    
+                }
+                else
+                {
+                    // 3. Fallback: If no one has voted recently, use the sensor/occupancy data
+                    finalDensity = CrowdDensityHelper.GetLevel(l.OccupancyRate);
+                }
+
+                dtos.Add(new CrowdLocationsDto
+                {
+                    id = l.Id,
+                    name = l.LocationName, // Ensure this maps to 'name' for the frontend
+                    type = l.Type,
+                    pos = new List<double> { l.Latitude, l.Longitude },
+                    density = finalDensity, // This string now matches your crowdHelper keys
+                    lastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated)
+                });
+
+            }
 
             return Ok(dtos);
-        }
+}
 
         [HttpGet("location/{id}")]
         [Authorize]
@@ -71,7 +103,7 @@ namespace Crowdlens_backend.Controllers
                     userCount = location.UserCount,
                     capacity = location.Capacity,
                     occupancyRate = Math.Round(location.OccupancyRate, 1),
-                    densityLevel = CrowdDensityHelper.GetLevel(location.OccupancyRate).ToString(),
+                    density = CrowdDensityHelper.GetLevel(location.OccupancyRate).ToString(),
                     lastUpdated = CrowdDensityHelper.GetTimestampLabel(location.LastUpdated),
 
                     // You could also add a Votes property here if you update your DTO
@@ -90,6 +122,21 @@ namespace Crowdlens_backend.Controllers
         public async Task<IActionResult> SubmitReport([FromBody] Report reportRequest)
         {
             if (reportRequest == null) return BadRequest("Invalid report data.");
+
+
+            var userId = User.Identity?.Name; // using JWT to get user ID in Name
+            var cooldownPeriod = DateTime.UtcNow.AddMinutes(-15); // 15-minute cooldown
+            
+            // Check if the user has already reported for this location within the cooldown period
+            bool hasRecentVote = await _context.Reports
+                .AnyAsync(r => r.LocationId == reportRequest.LocationId 
+                            && r.UserId == userId 
+                            && r.CreatedAt >= cooldownPeriod);
+
+            if (hasRecentVote)
+            {
+                return BadRequest("You have already reported for this location within the last 15 minutes.");
+            }
 
             // Create a new report record
             var newReport = new Report

@@ -21,4 +21,13 @@ namespace Crowdlens_backend.DTOs
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
     }
+
+    // NEW: The response sent back to React after Login
+    public class AuthResponseDto
+    {
+        public string Token { get; set; } = "";
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
 }

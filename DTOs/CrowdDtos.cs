@@ -12,7 +12,7 @@ namespace Crowdlens_backend.DTOs
         public int userCount { get; set; }
         public int capacity { get; set; }
         public double occupancyRate { get; set; }
-        public string densityLevel { get; set; } = "";
+        public string density { get; set; } = "";
         public string lastUpdated { get; set; } = "";   // "updated 2 minutes ago"
         public double latitude { get; set; }
         public double longitude { get; set; }
