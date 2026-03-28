@@ -109,7 +109,7 @@ namespace Crowdlens_backend.Controllers
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds
             );
 

@@ -25,13 +25,8 @@ public static class DbInitializer
                 UserCount = 150, // 50% Occupancy (Medium)
                 Latitude = 10.3095,
                 Longitude = 123.8931,
-                LastUpdated = DateTime.UtcNow,
-                // Initialize votes
-                VotesVeryLow = 2,
-                VotesLow = 5,
-                VotesMedium = 15,
-                VotesHigh = 3,
-                VotesVeryHigh = 0
+                LastUpdated = DateTime.Now,
+ 
             },
             new Location
             {
@@ -41,12 +36,8 @@ public static class DbInitializer
                 UserCount = 850, // 85% Occupancy (High)
                 Latitude = 10.3117,
                 Longitude = 123.8915,
-                LastUpdated = DateTime.UtcNow,
-                VotesVeryLow = 0,
-                VotesLow = 1,
-                VotesMedium = 4,
-                VotesHigh = 20,
-                VotesVeryHigh = 25
+                LastUpdated = DateTime.Now,
+
             },
             new Location
             {
@@ -56,12 +47,7 @@ public static class DbInitializer
                 UserCount = 50, // 10% Occupancy (Low)
                 Latitude = 10.3111,
                 Longitude = 123.8941,
-                LastUpdated = DateTime.UtcNow,
-                VotesVeryLow = 10,
-                VotesLow = 15,
-                VotesMedium = 2,
-                VotesHigh = 0,
-                VotesVeryHigh = 0
+                LastUpdated = DateTime.Now,
             }
         };
 
@@ -71,8 +57,8 @@ public static class DbInitializer
         // Seed some initial Reports (votes) to test "Fresh Votes" logic
         var initialReports = new List<Report>
         {
-            new Report { LocationId = 1, SelectedLevel = "Medium", CreatedAt = DateTime.UtcNow.AddMinutes(-5) },
-            new Report { LocationId = 2, SelectedLevel = "High", CreatedAt = DateTime.UtcNow.AddMinutes(-2) }
+            new Report { LocationId = 1, SelectedLevel = "Medium", CreatedAt = DateTime.Now.AddMinutes(-5) },
+            new Report { LocationId = 2, SelectedLevel = "High", CreatedAt = DateTime.Now.AddMinutes(-2) }
         };
         
         context.Reports.AddRange(initialReports);

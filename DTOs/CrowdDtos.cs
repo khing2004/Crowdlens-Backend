@@ -18,6 +18,7 @@ namespace Crowdlens_backend.DTOs
         public double longitude { get; set; }
         public string type { get; set; } = "";
         public List<double> pos { get; set; } = new();
+        public Dictionary<string, int> votes { get; set; } = new(); // e.g. {"Very Low": 5, "Low": 10, ...}
     }
 
     public class AlternativeAreaDto

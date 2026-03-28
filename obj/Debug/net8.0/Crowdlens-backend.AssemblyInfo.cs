@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Crowdlens-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c22c1aae8ee878e757228d6143c5fcc21c703418")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c1436b2f7ff7a38f0537ba94609575a3717651c0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Crowdlens-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Crowdlens-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
