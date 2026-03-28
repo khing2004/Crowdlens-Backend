@@ -50,6 +50,23 @@ namespace Crowdlens_backend.Controllers
             return "Very Low"; // fallback
         }
 
+        // Helper method for distance calculation
+        private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            var R = 6371e3; // Earth radius in meters
+            var d1 = lat1 * Math.PI / 180;
+            var d2 = lat2 * Math.PI / 180;
+            var sd1 = (lat2 - lat1) * Math.PI / 180;
+            var sd2 = (lon2 - lon1) * Math.PI / 180;
+
+            var a = Math.Sin(sd1 / 2) * Math.Sin(sd1 / 2) +
+                    Math.Cos(d1) * Math.Cos(d2) *
+                    Math.Sin(sd2 / 2) * Math.Sin(sd2 / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return R * c; // Returns distance in meters
+        }
+
         //  GET ALL LOCATIONS
         [HttpGet("locations")]
         [Authorize]
@@ -157,17 +174,42 @@ namespace Crowdlens_backend.Controllers
         //  SUBMIT REPORT
         [HttpPost("report")]
         [Authorize]
-        public async Task<IActionResult> SubmitReport([FromBody] Report reportRequest)
-        {
+        public async Task<IActionResult> SubmitReport([FromBody] ReportRequestDto reportRequest)
+        {   
+            if (reportRequest.Latitude == 0 || reportRequest.Longitude == 0)
+            {
+                return BadRequest("Invalid location data.");
+            }
+            
             if (reportRequest == null)
                 return BadRequest("Invalid report data.");
 
             var userId = User.Identity?.Name;
-
-            //  Prevent null user bug
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Invalid user identity.");
 
+            // get location from db
+            var location = await _context.Locations.
+            FirstOrDefaultAsync(l => l.Id == reportRequest.LocationId);
+            if (location == null)
+                return NotFound($"Location with ID {reportRequest.LocationId} not found.");
+
+            // calculate distance
+            var distance = CalculateDistance(
+                reportRequest.Latitude, 
+                reportRequest.Longitude, 
+                location.Latitude, 
+                location.Longitude);
+            
+            // allowed radius is 100m
+            const double MAX_DISTANCE_METERS = 100;
+
+            if (distance > MAX_DISTANCE_METERS)
+            {
+                return BadRequest($"You must be within {MAX_DISTANCE_METERS} meters to report. Current distance: {Math.Round(distance)}m");
+            }
+
+            // cooldown check
             var cooldownPeriod = DateTime.Now.AddMinutes(-15);
 
             bool hasRecentVote = await _context.Reports
@@ -191,6 +233,10 @@ namespace Crowdlens_backend.Controllers
 
             _context.Reports.Add(newReport);
             await _context.SaveChangesAsync();
+
+            Console.WriteLine($"User coords: {reportRequest.Latitude}, {reportRequest.Longitude}");
+            Console.WriteLine($"Location coords: {location.Latitude}, {location.Longitude}");
+            Console.WriteLine($"Distance: {distance}");
 
             return Ok(new { message = "Crowd level reported successfully." });
         }

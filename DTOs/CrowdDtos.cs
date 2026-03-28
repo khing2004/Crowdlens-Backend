@@ -49,5 +49,13 @@ namespace Crowdlens_backend.DTOs
         public List<CrowdLocationsDto> Establishments { get; set; } = new();
         public List<AlternativeAreaDto> AlternativeAreas { get; set; } = new();
     }
+
+    public class ReportRequestDto
+    {
+        public int LocationId { get; set; }
+        public string SelectedLevel { get; set; } = "";
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
     
 }
