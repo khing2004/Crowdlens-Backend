@@ -75,22 +75,44 @@ namespace Crowdlens_backend.Controllers
             var locations = await _context.Locations.ToListAsync();
             var oneHourAgo = DateTime.Now.AddHours(-1);
 
-            //  Fetch ALL recent reports in ONE query
+            //  fetch ALL recent reports in ONE query
             var reports = await _context.Reports
                 .Where(r => r.CreatedAt >= oneHourAgo)
                 .ToListAsync();
+
+            // lastUpdated is always based on the most recent activity
+            var absoluteLatestReports = await _context.Reports
+                .GroupBy(r => r.LocationId)
+                .Select(g => new { 
+                    LocationId = g.Key, 
+                    LatestDate = g.Max(r => r.CreatedAt) 
+                })
+                .ToDictionaryAsync(x => x.LocationId, x => x.LatestDate);
 
             var dtos = new List<CrowdLocationsDto>();
             
             foreach (var l in locations)
             {
-                // Filter reports per location + normalize + remove nulls
+
+                var locationReports = reports.Where(r => r.LocationId == l.Id).ToList();
+
+                // get the most recent report timestamp, or fallback to Location's LastUpdated
+                var latestReportTime = locationReports.Any() 
+                    ? locationReports.Max(r => r.CreatedAt) 
+                    : l.LastUpdated;
+
+                // filter reports per location + normalize + remove nulls
                 var votes = reports
                     .Where(r => r.LocationId == l.Id && !string.IsNullOrEmpty(r.SelectedLevel))
                     .Select(r => NormalizeLevel(r.SelectedLevel))
                     .ToList();
 
                 var finalDensity = ComputeDensity(votes);
+
+                // check absolute latest report from the dictionary
+                DateTime displayTime = absoluteLatestReports.TryGetValue(l.Id, out var reportTime) 
+                    ? reportTime 
+                    : l.LastUpdated;
 
                 var voteCounts = votes
                         .GroupBy(v => v)
@@ -103,7 +125,7 @@ namespace Crowdlens_backend.Controllers
                     type = l.Type,
                     pos = new List<double> { l.Latitude, l.Longitude },
                     density = finalDensity,
-                    lastUpdated = CrowdDensityHelper.GetTimestampLabel(l.LastUpdated),
+                    lastUpdated = CrowdDensityHelper.GetTimestampLabel(displayTime),
                     votes = new Dictionary<string, int>
                     {
                         { "Very Low", voteCounts.GetValueOrDefault("Very Low", 0) },
