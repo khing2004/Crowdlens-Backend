@@ -11,6 +11,6 @@ namespace Crowdlens_backend.Models
     public int LocationId { get; set; } // Which location?
     public string? UserId { get; set; } // Who voted? (to prevent spam)
     public string? SelectedLevel { get; set; } // "High", "Low", etc.
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

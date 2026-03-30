@@ -7,17 +7,18 @@ namespace Crowdlens_backend.DTOs
 {
     public class CrowdLocationsDto
     {
-        public int Id { get; set; }
-        public string EstablishmentName { get; set; } = "";
-        public int UserCount { get; set; }
-        public int Capacity { get; set; }
-        public double OccupancyRate { get; set; }
-        public string DensityLevel { get; set; } = "";
-        public string LastUpdated { get; set; } = "";   // "updated 2 minutes ago"
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public int id { get; set; }
+        public string name { get; set; } = "";
+        public int userCount { get; set; }
+        public int capacity { get; set; }
+        public double occupancyRate { get; set; }
+        public string density { get; set; } = "";
+        public string lastUpdated { get; set; } = "";   // "updated 2 minutes ago"
+        public double latitude { get; set; }
+        public double longitude { get; set; }
         public string type { get; set; } = "";
         public List<double> pos { get; set; } = new();
+        public Dictionary<string, int> votes { get; set; } = new(); // e.g. {"Very Low": 5, "Low": 10, ...}
     }
 
     public class AlternativeAreaDto
@@ -47,6 +48,14 @@ namespace Crowdlens_backend.DTOs
         
         public List<CrowdLocationsDto> Establishments { get; set; } = new();
         public List<AlternativeAreaDto> AlternativeAreas { get; set; } = new();
+    }
+
+    public class ReportRequestDto
+    {
+        public int LocationId { get; set; }
+        public string SelectedLevel { get; set; } = "";
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
     
 }

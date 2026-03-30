@@ -6,16 +6,9 @@ namespace Crowdlens_backend.Models
         public string LocationName { get; set; } = string.Empty;
         public string Type { get; set; } = "Public Space"; // Added to match frontend 'type'
         
-        // Voting Data
-        public int VotesVeryLow { get; set; }
-        public int VotesLow { get; set; }
-        public int VotesMedium { get; set; }
-        public int VotesHigh { get; set; }
-        public int VotesVeryHigh { get; set; }
-
         public int UserCount { get; set; }
         public int Capacity { get; set; }
-        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 

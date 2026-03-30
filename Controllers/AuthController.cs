@@ -80,7 +80,13 @@ namespace Crowdlens_backend.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
 
-            return Ok(new { token });
+            return Ok(new AuthResponseDto
+            {
+                Token = token,
+                FullName = user.FullName,
+                Email = user.Email ?? "",
+                Role = roles.FirstOrDefault() ?? "User"
+            });
         }
 
         private string GenerateJwtToken(User user, IList<string> roles)
@@ -103,7 +109,7 @@ namespace Crowdlens_backend.Controllers
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds
             );
 
