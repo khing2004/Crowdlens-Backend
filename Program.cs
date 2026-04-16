@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Crowdlens_backend.Models;
 using Microsoft.OpenApi.Models;
+using Crowdlens_backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,10 @@ builder.Services.AddAuthentication(options =>
 
 // Enable Identity API endpoints
 builder.Services.AddAuthorization();
+
+// Register notification services
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+builder.Services.AddHostedService<CrowdAlertBackgroundService>();
 
 var app = builder.Build();
 
