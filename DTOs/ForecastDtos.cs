@@ -25,5 +25,7 @@ namespace Crowdlens_backend.DTOs
         public List<ForecastSlotDto> Forecast { get; set; } = new();
         public ForecastAlternativeDto? SuggestedAlternative { get; set; }
         public bool ForecastUnavailable { get; set; }
+        /// <summary>"lstm" when the Python model answered; "statistical" when using the fallback.</summary>
+        public string ModelType { get; set; } = "statistical";
     }
 }
