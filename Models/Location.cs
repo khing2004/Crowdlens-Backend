@@ -11,7 +11,11 @@ namespace Crowdlens_backend.Models
         public DateTime LastUpdated { get; set; } = DateTime.Now;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-
+        public int VotesVeryLow { get; set; } = 0;
+        public int VotesLow { get; set; } = 0;
+        public int VotesMedium { get; set; } = 0;
+        public int VotesHigh { get; set; } = 0;
+        public int VotesVeryHigh { get; set; } = 0;
         public double OccupancyRate => Capacity > 0 ? (double)UserCount / Capacity * 100 : 0;
     }
 }
