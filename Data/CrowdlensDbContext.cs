@@ -13,4 +13,5 @@ public class CrowdLensDbContext : IdentityDbContext<User>
 
     public DbSet<Report> Reports { get; set; } // why is there a need to do this? what does this do? I read that DbSet<Area> recognizes the model Area into a schema or table?
     public DbSet<Location> Locations { get; set; }
+    public DbSet<ForecastRecord> ForecastRecords { get; set; }
 }

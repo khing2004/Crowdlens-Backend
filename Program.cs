@@ -22,6 +22,7 @@ builder.Services.AddCors(options =>
 }); 
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();  // for ForecastController → Python LSTM service
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
