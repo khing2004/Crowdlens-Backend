@@ -103,7 +103,7 @@ namespace Crowdlens_backend.Controllers
                 ForecastAlternativeDto? alternative = null;
                 int peakScore = forecast.Max(f => f.DensityScore);
                 if (peakScore >= 4)
-                    alternative = await FindBestAlternative(locationId, now, hoursAhead);
+                    alternative = await FindBestAlternative(locationId, now, hoursAhead, peakScore);
 
                 return new ForecastResponseDto
                 {
@@ -153,8 +153,9 @@ namespace Crowdlens_backend.Controllers
             }
 
             ForecastAlternativeDto? alternative = null;
-            if (forecast.Max(f => f.DensityScore) >= 4)
-                alternative = await FindBestAlternative(locationId, now, hoursAhead);
+            int peakScore = forecast.Max(f => f.DensityScore);
+            if (peakScore >= 4)
+                alternative = await FindBestAlternative(locationId, now, hoursAhead, peakScore);
 
             return new ForecastResponseDto
             {
@@ -207,19 +208,21 @@ namespace Crowdlens_backend.Controllers
         }
 
         private async Task<ForecastAlternativeDto?> FindBestAlternative(
-            int excludeId, DateTime now, int hoursAhead)
+            int excludeId, DateTime now, int hoursAhead, int locPeakScore)
         {
+            var selected = await _context.Locations.FindAsync(excludeId);
+            if (selected == null) return null;
+
             var others = await _context.Locations
-                .Where(l => l.Id != excludeId)
+                .Where(l => l.Id != excludeId && l.Type == selected.Type)
                 .ToListAsync();
 
-            ForecastAlternativeDto? best     = null;
-            int                     bestPeak = int.MaxValue;
+            var candidates = new List<(ForecastAlternativeDto dto, double distance)>();
 
             foreach (var loc in others)
             {
-                var recs  = await _context.ForecastRecords.Where(r => r.LocationId == loc.Id).ToListAsync();
-                int peak  = 1;
+                var recs = await _context.ForecastRecords.Where(r => r.LocationId == loc.Id).ToListAsync();
+                int peak = 1;
                 for (int i = 0; i < hoursAhead; i++)
                 {
                     var t = now.AddHours(i);
@@ -227,19 +230,32 @@ namespace Crowdlens_backend.Controllers
                     int s = ComputeSlot(t, m, now).DensityScore;
                     if (s > peak) peak = s;
                 }
-                if (peak < bestPeak)
+                if (peak < locPeakScore)
                 {
-                    bestPeak = peak;
-                    best     = new ForecastAlternativeDto
+                    double dist = Haversine(selected.Latitude, selected.Longitude, loc.Latitude, loc.Longitude);
+                    candidates.Add((new ForecastAlternativeDto
                     {
                         LocationId       = loc.Id,
                         LocationName     = loc.LocationName,
                         PeakDensityScore = peak,
                         PeakDensityLevel = ScoreToLevel(peak)
-                    };
+                    }, dist));
                 }
             }
-            return (best != null && bestPeak <= 3) ? best : null;
+
+            if (!candidates.Any()) return null;
+            return candidates.OrderBy(c => c.distance).First().dto;
+        }
+
+        private static double Haversine(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000;
+            double dLat = (lat2 - lat1) * Math.PI / 180;
+            double dLon = (lon2 - lon1) * Math.PI / 180;
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                     + Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180)
+                     * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         private static string ScoreToLevel(int score) => score switch
