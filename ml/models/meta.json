@@ -1,27 +1,27 @@
 {
   "1": {
-    "val_mse": 0.009706,
-    "val_rmse": 0.0985,
-    "samples": 1411
+    "val_mse": 0.027057,
+    "val_rmse": 0.1645,
+    "samples": 2131
   },
   "2": {
-    "val_mse": 0.012266,
-    "val_rmse": 0.1108,
-    "samples": 1411
+    "val_mse": 0.029947,
+    "val_rmse": 0.1731,
+    "samples": 2131
   },
   "3": {
-    "val_mse": 0.010663,
-    "val_rmse": 0.1033,
-    "samples": 1411
+    "val_mse": 0.022499,
+    "val_rmse": 0.15,
+    "samples": 2131
   },
   "4": {
-    "val_mse": 0.010968,
-    "val_rmse": 0.1047,
-    "samples": 1411
+    "val_mse": 0.027059,
+    "val_rmse": 0.1645,
+    "samples": 2131
   },
   "5": {
-    "val_mse": 0.008806,
-    "val_rmse": 0.0938,
-    "samples": 1411
+    "val_mse": 0.020316,
+    "val_rmse": 0.1425,
+    "samples": 2131
   }
 }

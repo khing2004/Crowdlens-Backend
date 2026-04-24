@@ -89,7 +89,7 @@ public static class DbInitializer
         }
         context.SaveChanges();
 
-        // --- Seed 60 days of historical forecast records ---
+        // --- Seed 90 days of historical forecast records ---
         if (!context.ForecastRecords.Any())
         {
             SeedForecastRecords(context);
@@ -100,9 +100,13 @@ public static class DbInitializer
     //  MOCK DATA GENERATION
     //  Pattern logic per location type:
     //
-    //  Hospital       — high baseline 24/7, afternoon peak (Very High at 15-17h)
-    //  Public Library — closed early/late; afternoon peak on weekdays, flat weekend
+    //  Hospital       — moderate baseline 24/7; clear afternoon peak (Very High 14-17h)
+    //  Public Library — closed early/late; midday peak on weekdays, lighter weekend
     //  Public Square  — quiet weekdays, busy Friday evening + all-day Saturday
+    //
+    //  Noise model: Box-Muller Gaussian (stddev ≈ 0.8) so every score level
+    //  appears near boundary hours and training data is never flat.
+    //  Day-level shifts and random event days add further week-to-week variance.
     // -----------------------------------------------------------------------
     private static void SeedForecastRecords(CrowdLensDbContext context)
     {
@@ -113,22 +117,31 @@ public static class DbInitializer
 
         foreach (var location in locations)
         {
-            for (int daysAgo = 60; daysAgo >= 1; daysAgo--)
+            for (int daysAgo = 90; daysAgo >= 1; daysAgo--)
             {
                 var date      = now.AddDays(-daysAgo).Date;
                 bool isWeekend = date.DayOfWeek == DayOfWeek.Saturday
                               || date.DayOfWeek == DayOfWeek.Sunday;
 
+                // Per-day random shift (±1 on ~25% of days) — simulates busier/quieter days
+                int dayShift = rng.NextDouble() < 0.25
+                    ? (rng.Next(2) == 0 ? 1 : -1)
+                    : 0;
+
+                // Event day (7% chance): crowd bumped up by 1–2 all day
+                int eventBump = rng.NextDouble() < 0.07 ? rng.Next(1, 3) : 0;
+
                 for (int hour = 0; hour < 24; hour++)
                 {
                     int baseScore = GetBaseScore(location.Type, location.LocationName, hour, isWeekend);
 
-                    // ±1 noise with 30% probability to simulate real-world variance
-                    int noise = rng.NextDouble() < 0.30
-                        ? (rng.Next(2) == 0 ? 1 : -1)
-                        : 0;
+                    // Box-Muller Gaussian noise (stddev ≈ 0.8)
+                    double u1 = 1.0 - rng.NextDouble();
+                    double u2 = 1.0 - rng.NextDouble();
+                    double gaussian = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
+                    int noise = (int)Math.Round(gaussian * 0.8);
 
-                    int score = Math.Clamp(baseScore + noise, 1, 5);
+                    int score = Math.Clamp(baseScore + noise + dayShift + eventBump, 1, 5);
 
                     records.Add(new ForecastRecord
                     {
@@ -162,16 +175,16 @@ public static class DbInitializer
         };
     }
 
-    // Hospitals are busy 24/7; peak in the afternoon
+    // Hospitals always have ER/staff activity — overnight minimum is Low, not Very Low
     private static int GetHospitalScore(int hour) => hour switch
     {
-        >= 0  and < 5  => 1, // overnight — steady Very Low
-        >= 5  and < 7  => 2,
-        >= 7  and < 10 => 2, // morning rush — Low
-        >= 10 and < 14 => 4, // busy midday — High
-        >= 14 and < 18 => 5, // afternoon peak — Very High
-        >= 18 and < 21 => 2, // evening — Medium
-        _              => 2  // late night — Medium
+        >= 0  and < 5  => 2, // Low — overnight minimum (ER, night shift)
+        >= 5  and < 7  => 3, // Medium — early arrivals, shift change
+        >= 7  and < 10 => 3, // Medium — morning rush
+        >= 10 and < 14 => 4, // High — busy midday
+        >= 14 and < 18 => 5, // Very High — afternoon peak
+        >= 18 and < 20 => 3, // Medium — evening transition
+        _              => 2  // Low — late night
     };
 
     // UP Cebu Library — open 8 AM to 6 PM only; closed outside those hours
