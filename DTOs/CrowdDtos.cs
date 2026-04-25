@@ -19,6 +19,9 @@ namespace Crowdlens_backend.DTOs
         public string type { get; set; } = "";
         public List<double> pos { get; set; } = new();
         public Dictionary<string, int> votes { get; set; } = new(); // e.g. {"Very Low": 5, "Low": 10, ...}
+
+        // Populated only when returned from /api/Favorites
+        public string? alertThreshold { get; set; }
     }
 
     public class AlternativeAreaDto

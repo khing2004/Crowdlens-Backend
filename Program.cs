@@ -92,11 +92,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// For seeder to trigger
+// Apply any pending EF migrations, then seed reference data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<CrowdLensDbContext>();
+    context.Database.Migrate();   // creates/updates the DB schema on startup
     DbInitializer.Seed(context);
 }
 
