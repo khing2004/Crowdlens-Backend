@@ -193,6 +193,36 @@ namespace Crowdlens_backend.Controllers
             }
         }
 
+        //  GET RECENT REPORTS (last 30 minutes, max 20)
+        [HttpGet("recent-reports")]
+        [Authorize]
+        public async Task<IActionResult> GetRecentReports()
+        {
+            var thirtyMinutesAgo = DateTime.Now.AddMinutes(-30);
+
+            var reports = await _context.Reports
+                .Where(r => r.CreatedAt >= thirtyMinutesAgo && !string.IsNullOrEmpty(r.SelectedLevel))
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(20)
+                .ToListAsync();
+
+            var locationIds = reports.Select(r => r.LocationId).Distinct().ToList();
+
+            var locationNames = await _context.Locations
+                .Where(l => locationIds.Contains(l.Id))
+                .ToDictionaryAsync(l => l.Id, l => l.LocationName);
+
+            var result = reports.Select(r => new
+            {
+                locationId = r.LocationId,
+                locationName = locationNames.GetValueOrDefault(r.LocationId, "Unknown"),
+                densityLevel = NormalizeLevel(r.SelectedLevel),
+                reportedAt = r.CreatedAt.ToString("o") // ISO 8601 for easy JS parsing
+            });
+
+            return Ok(result);
+        }
+
         //  SUBMIT REPORT
         [HttpPost("report")]
         [Authorize]
