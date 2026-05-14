@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CrowdLens.Data;
 using Crowdlens_backend.Helpers;
@@ -275,11 +276,16 @@ namespace Crowdlens_backend.Controllers
                 return BadRequest("You have already reported for this location within the last 15 minutes.");
             }
 
+            var remark = reportRequest.Remark?.Trim();
+            if (remark?.Length > 280)
+                remark = remark[..280];
+
             var newReport = new Report
             {
                 LocationId = reportRequest.LocationId,
                 SelectedLevel = NormalizeLevel(reportRequest.SelectedLevel),
                 UserId = userId,
+                Remark = string.IsNullOrEmpty(remark) ? null : remark,
                 CreatedAt = DateTime.Now
             };
 
@@ -291,6 +297,96 @@ namespace Crowdlens_backend.Controllers
             Console.WriteLine($"Distance: {distance}");
 
             return Ok(new { message = "Crowd level reported successfully." });
+        }
+
+        // GET INDIVIDUAL REPORTS FOR A LOCATION (with remarks + vote counts)
+        [HttpGet("location/{id}/reports")]
+        [Authorize]
+        public async Task<IActionResult> GetLocationReports(int id)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var oneHourAgo = DateTime.Now.AddHours(-1);
+
+            var reports = await _context.Reports
+                .Include(r => r.Votes)
+                .Where(r => r.LocationId == id && r.CreatedAt >= oneHourAgo)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            var result = reports.Select(r => new ReportDetailDto
+            {
+                Id = r.Id,
+                UserName = r.UserId ?? "Anonymous",
+                DensityLevel = NormalizeLevel(r.SelectedLevel),
+                Remark = r.Remark,
+                Upvotes = r.Votes.Count(v => v.VoteType == "Up"),
+                Downvotes = r.Votes.Count(v => v.VoteType == "Down"),
+                UserVote = r.Votes.FirstOrDefault(v => v.UserId == currentUserId)?.VoteType,
+                ReportedAt = r.CreatedAt.ToString("o")
+            }).ToList();
+
+            return Ok(result);
+        }
+
+        // VOTE ON A REPORT (upvote / downvote — toggle off if same vote)
+        [HttpPost("report/{reportId}/vote")]
+        [Authorize]
+        public async Task<IActionResult> VoteOnReport(int reportId, [FromBody] VoteRequestDto dto)
+        {
+            if (dto.VoteType != "Up" && dto.VoteType != "Down")
+                return BadRequest("VoteType must be 'Up' or 'Down'.");
+
+            if (dto.Latitude == 0 || dto.Longitude == 0)
+                return BadRequest("Invalid location data.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized();
+
+            var report = await _context.Reports.FindAsync(reportId);
+            if (report == null)
+                return NotFound("Report not found.");
+
+            var location = await _context.Locations.FindAsync(report.LocationId);
+            if (location == null)
+                return NotFound("Location not found.");
+
+            const double MAX_DISTANCE_METERS = 100;
+            var distance = CalculateDistance(dto.Latitude, dto.Longitude, location.Latitude, location.Longitude);
+            if (distance > MAX_DISTANCE_METERS)
+                return BadRequest($"You must be within {MAX_DISTANCE_METERS}m of the location to vote. Current distance: {Math.Round(distance)}m");
+
+            var existing = await _context.ReportVotes
+                .FirstOrDefaultAsync(v => v.ReportId == reportId && v.UserId == currentUserId);
+
+            if (existing != null)
+            {
+                if (existing.VoteType == dto.VoteType)
+                    _context.ReportVotes.Remove(existing);   // toggle off
+                else
+                    existing.VoteType = dto.VoteType;         // switch vote
+            }
+            else
+            {
+                _context.ReportVotes.Add(new ReportVote
+                {
+                    ReportId = reportId,
+                    UserId = currentUserId,
+                    VoteType = dto.VoteType,
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            var upvotes   = await _context.ReportVotes.CountAsync(v => v.ReportId == reportId && v.VoteType == "Up");
+            var downvotes = await _context.ReportVotes.CountAsync(v => v.ReportId == reportId && v.VoteType == "Down");
+            var userVote  = await _context.ReportVotes
+                .Where(v => v.ReportId == reportId && v.UserId == currentUserId)
+                .Select(v => (string?)v.VoteType)
+                .FirstOrDefaultAsync();
+
+            return Ok(new { upvotes, downvotes, userVote });
         }
     }
 }

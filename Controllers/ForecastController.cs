@@ -15,7 +15,7 @@ namespace Crowdlens_backend.Controllers
         private readonly CrowdLensDbContext _context;
         private readonly IHttpClientFactory _httpFactory;
 
-        // Address of the Python LSTM microservice
+        // address of the Python LSTM microservice
         private const string LSTM_BASE = "http://localhost:8000";
 
         public ForecastController(CrowdLensDbContext context, IHttpClientFactory httpFactory)
@@ -24,14 +24,12 @@ namespace Crowdlens_backend.Controllers
             _httpFactory = httpFactory;
         }
 
-        // -----------------------------------------------------------------------
         //  GET /api/Forecast/{locationId}?hoursAhead=6
         //
         //  Priority:
         //    1. Call the Python LSTM service  → ModelType = "lstm"
         //    2. Fall back to weighted temporal-pattern model  → ModelType = "statistical"
         //    3. If both fail, return ForecastUnavailable = true
-        // -----------------------------------------------------------------------
         [HttpGet("{locationId}")]
         [Authorize]
         public async Task<IActionResult> GetForecast(int locationId, [FromQuery] int hoursAhead = 6)
@@ -42,12 +40,12 @@ namespace Crowdlens_backend.Controllers
                 if (location == null)
                     return NotFound(new { message = $"Location {locationId} not found." });
 
-                // ── Try LSTM first ──────────────────────────────────────────────
+                // try lstm first
                 var lstmResult = await TryLstmForecast(locationId, hoursAhead, location.LocationName);
                 if (lstmResult != null)
                     return Ok(lstmResult);
 
-                // ── Fall back to statistical model ──────────────────────────────
+                // fall back to statistical
                 var statisticalResult = await StatisticalForecast(locationId, location.LocationName, hoursAhead);
                 return Ok(statisticalResult);
             }
@@ -57,9 +55,7 @@ namespace Crowdlens_backend.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
-        //  LSTM PATH — calls the Python FastAPI service
-        // -----------------------------------------------------------------------
+
         private async Task<ForecastResponseDto?> TryLstmForecast(
             int locationId, int hoursAhead, string locationName)
         {
@@ -117,12 +113,11 @@ namespace Crowdlens_backend.Controllers
             }
             catch
             {
-                // Python service unavailable or returned an error → fall through
+                // python service unavailable or returned an error → fall through
                 return null;
             }
         }
 
-        // -----------------------------------------------------------------------
         //  STATISTICAL PATH — weighted temporal-pattern average
         //
         //  Algorithm:
@@ -131,7 +126,6 @@ namespace Crowdlens_backend.Controllers
         //      2. Apply exponential decay weight: w = exp(−daysAgo / 14)
         //      3. Weighted mean → score 1–5.
         //      4. Variance → confidence percentage.
-        // -----------------------------------------------------------------------
         private async Task<ForecastResponseDto> StatisticalForecast(
             int locationId, string locationName, int hoursAhead)
         {
@@ -168,9 +162,6 @@ namespace Crowdlens_backend.Controllers
             };
         }
 
-        // -----------------------------------------------------------------------
-        //  SHARED HELPERS
-        // -----------------------------------------------------------------------
 
         private static ForecastSlotDto ComputeSlot(
             DateTime target, List<ForecastRecord> matching, DateTime now)

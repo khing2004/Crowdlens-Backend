@@ -12,10 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("react", 
+    options.AddPolicy("react",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") // React port
+            policy.WithOrigins(
+                "http://localhost:5173",
+                "https://crowdlens-frontend.vercel.app" // replace with your actual Vercel URL
+            )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });

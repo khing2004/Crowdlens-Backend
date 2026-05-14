@@ -15,4 +15,5 @@ public class CrowdLensDbContext : IdentityDbContext<User>
     public DbSet<Location> Locations { get; set; }
     public DbSet<ForecastRecord> ForecastRecords { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
+    public DbSet<ReportVote> ReportVotes { get; set; }
 }
