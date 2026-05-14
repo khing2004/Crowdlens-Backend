@@ -18,7 +18,7 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(
                 "http://localhost:5173",
                 "https://crowdlens-frontend.vercel.app", // replace with your actual Vercel URL
-                "https://crowd-lens-frontend.vercel.app/"
+                "https://crowdlens-v1.vercel.app"
             )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
