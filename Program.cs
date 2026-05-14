@@ -100,7 +100,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<CrowdLensDbContext>();
-    context.Database.Migrate();   // creates/updates the DB schema on startup
+    context.Database.EnsureCreated();
     DbInitializer.Seed(context);
 }
 
