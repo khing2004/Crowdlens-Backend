@@ -17,7 +17,6 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                 "http://localhost:5173",
-                "https://crowdlens-frontend.vercel.app", // replace with your actual Vercel URL
                 "https://crowdlens-v1.vercel.app"
             )
                 .AllowAnyHeader()
@@ -107,9 +106,9 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseHttpsRedirection();
+app.UseCors("react");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors("react");
 app.MapControllers();
 
 app.Run();
