@@ -86,6 +86,10 @@ Migrations/
  20260517061259_AddUserProfileAndSettings.Designer.cs
  20260517061348_FixBooleanDefaults.cs
  20260517061348_FixBooleanDefaults.Designer.cs
+ 20260517134407_UpdateLocationCoordinates.cs
+ 20260517134407_UpdateLocationCoordinates.Designer.cs
+ 20260517143110_CleanupLocations.cs
+ 20260517143110_CleanupLocations.Designer.cs
  CrowdLensDbContextModelSnapshot.cs
 Models/
  Favorite.cs
