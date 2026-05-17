@@ -106,6 +106,30 @@ namespace Crowdlens_backend.Controllers
             return Ok(new UserKarmaDto { Karma = upvotes - downvotes });
         }
 
+        // ── GET /api/User/karma-by-name?name=… ───────────────────────────────
+        // Public: any authenticated user can look up another reporter's karma.
+        [HttpGet("karma-by-name")]
+        public async Task<IActionResult> GetKarmaByName([FromQuery] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return BadRequest("name is required.");
+
+            var reportIds = await _context.Reports
+                .Where(r => r.UserId == name)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            if (!reportIds.Any())
+                return Ok(new UserKarmaDto { Karma = 0 });
+
+            var upvotes   = await _context.ReportVotes
+                .CountAsync(v => reportIds.Contains(v.ReportId) && v.VoteType == "Up");
+            var downvotes = await _context.ReportVotes
+                .CountAsync(v => reportIds.Contains(v.ReportId) && v.VoteType == "Down");
+
+            return Ok(new UserKarmaDto { Karma = upvotes - downvotes });
+        }
+
         // ── GET /api/User/settings ────────────────────────────────────────────
         [HttpGet("settings")]
         public async Task<IActionResult> GetSettings()
