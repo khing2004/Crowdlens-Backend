@@ -82,15 +82,28 @@ namespace Crowdlens_backend.Controllers
         [HttpGet("karma")]
         public async Task<IActionResult> GetKarma()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
+            // Reports store the author as User.Identity.Name (FullName), NOT the GUID.
+            // Use the same value here so the filter actually matches.
+            var userId = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var karma = await _context.Reports
+            // Collect IDs of reports authored by this user, then count
+            // Up/Down votes on those reports directly — same pattern used by
+            // VoteOnReport to avoid navigation-property translation issues.
+            var reportIds = await _context.Reports
                 .Where(r => r.UserId == userId)
-                .SelectMany(r => r.Votes)
-                .SumAsync(v => v.VoteType == "Up" ? 1 : -1);
+                .Select(r => r.Id)
+                .ToListAsync();
 
-            return Ok(new UserKarmaDto { Karma = karma });
+            if (!reportIds.Any())
+                return Ok(new UserKarmaDto { Karma = 0 });
+
+            var upvotes   = await _context.ReportVotes
+                .CountAsync(v => reportIds.Contains(v.ReportId) && v.VoteType == "Up");
+            var downvotes = await _context.ReportVotes
+                .CountAsync(v => reportIds.Contains(v.ReportId) && v.VoteType == "Down");
+
+            return Ok(new UserKarmaDto { Karma = upvotes - downvotes });
         }
 
         // ── GET /api/User/settings ────────────────────────────────────────────
