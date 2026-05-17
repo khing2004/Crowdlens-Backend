@@ -10,19 +10,18 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("react",
-        policy =>
-        {
-            policy.WithOrigins(
-                "http://localhost:5173",
-                "https://crowdlens-v1.vercel.app"
-            )
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-}); 
+        policy => policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();  // for ForecastController → Python LSTM service
@@ -54,8 +53,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Setting up DB
-builder.Services.AddDbContext<CrowdLensDbContext>(options => 
-    options.UseSqlite("Data Source=crowdlens.db"));
+builder.Services.AddDbContext<CrowdLensDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=crowdlens.db"));
 
 // Set up Identity with custom user
 builder.Services.AddIdentity<User, IdentityRole>()

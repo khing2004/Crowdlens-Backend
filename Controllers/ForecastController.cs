@@ -14,14 +14,16 @@ namespace Crowdlens_backend.Controllers
     {
         private readonly CrowdLensDbContext _context;
         private readonly IHttpClientFactory _httpFactory;
+        private readonly string _lstmBase;
 
-        // address of the Python LSTM microservice
-        private const string LSTM_BASE = "http://localhost:8000";
-
-        public ForecastController(CrowdLensDbContext context, IHttpClientFactory httpFactory)
+        public ForecastController(
+            CrowdLensDbContext context,
+            IHttpClientFactory httpFactory,
+            IConfiguration config)
         {
-            _context    = context;
-            _httpFactory = httpFactory;
+            _context     = context;
+            _httpFactory  = httpFactory;
+            _lstmBase    = config["Services:LstmBase"] ?? "http://localhost:8000";
         }
 
         //  GET /api/Forecast/{locationId}?hoursAhead=6
@@ -66,7 +68,7 @@ namespace Crowdlens_backend.Controllers
 
                 var payload  = JsonSerializer.Serialize(new { location_id = locationId, hours_ahead = hoursAhead });
                 var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
-                var response = await client.PostAsync($"{LSTM_BASE}/api/predict", content);
+                var response = await client.PostAsync($"{_lstmBase}/api/predict", content);
 
                 if (!response.IsSuccessStatusCode) return null;
 
