@@ -272,6 +272,43 @@ public static class DbInitializer
                 VotesVeryLow = 2, VotesLow = 8, VotesMedium = 14, VotesHigh = 16, VotesVeryHigh = 8,
             },
 
+            // ── School Centers ──────────────────────────────────────────────────
+            new Location
+            {
+                LocationName = "UP Cebu AS Conference Hall",
+                Type         = "School Center",
+                Capacity     = 8000,
+                UserCount    = 4000,
+                Latitude     = 10.3233,
+                Longitude    = 123.8994,
+                LastUpdated  = DateTime.Now,
+                VotesVeryLow = 5, VotesLow = 10, VotesMedium = 18, VotesHigh = 12, VotesVeryHigh = 5,
+            },
+
+            // ── Food and Dining ─────────────────────────────────────────────────
+            new Location
+            {
+                LocationName = "Kawayanan",
+                Type         = "Food and Dining",
+                Capacity     = 8000,
+                UserCount    = 4000,
+                Latitude     = 10.3237,
+                Longitude    = 123.8992,
+                LastUpdated  = DateTime.Now,
+                VotesVeryLow = 2, VotesLow = 5, VotesMedium = 10, VotesHigh = 18, VotesVeryHigh = 15,
+            },
+            new Location
+            {
+                LocationName = "McDonalds",
+                Type         = "Food and Dining",
+                Capacity     = 8000,
+                UserCount    = 4000,
+                Latitude     = 10.3306,
+                Longitude    = 123.8982,
+                LastUpdated  = DateTime.Now,
+                VotesVeryLow = 2, VotesLow = 6, VotesMedium = 12, VotesHigh = 16, VotesVeryHigh = 14,
+            },
+
             // ── Business Center ─────────────────────────────────────────────────
             new Location
             {
@@ -374,6 +411,8 @@ public static class DbInitializer
             "Government Office"=> GetGovernmentOfficeScore(hour, isWeekend),
             "Transport Hub"    => GetTransportHubScore(hour, isWeekend),
             "Food Strip"       => GetFoodStripScore(hour, isWeekend),
+            "Food and Dining"  => GetFoodStripScore(hour, isWeekend),
+            "School Center"    => GetSchoolCenterScore(hour, isWeekend),
             "Business Center"  => GetBusinessCenterScore(hour, isWeekend),
             _                  => GetPublicSquareScore(hour, isWeekend)
         };
@@ -410,6 +449,29 @@ public static class DbInitializer
             >= 10 and < 14 => 4,
             >= 14 and < 17 => 2,
             >= 17 and < 18 => 2,
+            _              => 1
+        };
+    }
+
+    private static int GetSchoolCenterScore(int hour, bool isWeekend)
+    {
+        if (isWeekend) return hour switch
+        {
+            >= 0  and < 8  => 1,
+            >= 8  and < 10 => 2,
+            >= 10 and < 13 => 3,
+            >= 13 and < 17 => 3,
+            >= 17 and < 19 => 2,
+            _              => 1
+        };
+        return hour switch
+        {
+            >= 0  and < 7  => 1,
+            >= 7  and < 9  => 3,
+            >= 9  and < 12 => 3, // peak morning sessions
+            >= 12 and < 13 => 4, // lunch break
+            >= 13 and < 17 => 2, // afternoon sessions
+            >= 17 and < 19 => 2,
             _              => 1
         };
     }
